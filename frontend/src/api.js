@@ -1,8 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://myraid-backend-o7sl.onrender.com",
-  withCredentials: true,
+  baseURL: import.meta.env.VITE_API_URL,
 });
 
 export default API;
