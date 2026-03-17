@@ -1,6 +1,7 @@
 const Task = require("../models/Task");
 const { encrypt, decrypt } = require("../utils/encryption");
 
+// ✅ CREATE TASK
 exports.createTask = async (req, res) => {
   try {
     const { title, description } = req.body;
@@ -19,11 +20,12 @@ exports.createTask = async (req, res) => {
 
     res.status(201).json(task);
   } catch (error) {
-    console.log(error); 
+    console.log("Create Task Error:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
 
+// ✅ GET TASKS
 exports.getTasks = async (req, res) => {
   try {
     const { page = 1, status, search } = req.query;
@@ -38,40 +40,79 @@ exports.getTasks = async (req, res) => {
       .limit(5)
       .sort({ createdAt: -1 });
 
-    const decryptedTasks = tasks.map((task) => ({
-      ...task._doc,
-      description: decrypt(task.description),
-    }));
+    // 🔥 SAFE DECRYPT (IMPORTANT FIX)
+    const decryptedTasks = tasks.map((task) => {
+      let desc = task.description;
+
+      try {
+        desc = decrypt(task.description);
+      } catch (e) {
+        console.log("Decrypt error:", e.message);
+      }
+
+      return {
+        ...task._doc,
+        description: desc,
+      };
+    });
 
     res.json(decryptedTasks);
   } catch (error) {
+    console.log("Get Tasks Error:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
-
+// ✅ UPDATE TASK
 exports.updateTask = async (req, res) => {
   try {
+    const updateData = { ...req.body };
+
+    // 🔥 encrypt if description updated
+    if (updateData.description) {
+      updateData.description = encrypt(updateData.description);
+    }
+
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id, user: req.user },
-      req.body,
+      updateData,
       { new: true },
     );
 
-    res.json(task);
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    // decrypt before sending
+    let desc = task.description;
+    try {
+      desc = decrypt(task.description);
+    } catch (e) {}
+
+    res.json({
+      ...task._doc,
+      description: desc,
+    });
   } catch (error) {
+    console.log("Update Task Error:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
 
+// ✅ DELETE TASK
 exports.deleteTask = async (req, res) => {
   try {
-    await Task.findOneAndDelete({
+    const task = await Task.findOneAndDelete({
       _id: req.params.id,
       user: req.user,
     });
 
-    res.json({ message: "Task deleted" });
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    res.json({ message: "Task deleted successfully" });
   } catch (error) {
+    console.log("Delete Task Error:", error.message);
     res.status(500).json({ message: error.message });
   }
 };
