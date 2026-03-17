@@ -1,7 +1,6 @@
 const Task = require("../models/Task");
 const { encrypt, decrypt } = require("../utils/encryption");
 
-// ✅ CREATE TASK
 exports.createTask = async (req, res) => {
   try {
     const { title, description } = req.body;
@@ -25,7 +24,6 @@ exports.createTask = async (req, res) => {
   }
 };
 
-// ✅ GET TASKS
 exports.getTasks = async (req, res) => {
   try {
     const { page = 1, status, search } = req.query;
@@ -40,14 +38,16 @@ exports.getTasks = async (req, res) => {
       .limit(5)
       .sort({ createdAt: -1 });
 
-    // 🔥 SAFE DECRYPT (IMPORTANT FIX)
     const decryptedTasks = tasks.map((task) => {
       let desc = task.description;
 
       try {
-        desc = decrypt(task.description);
+        if (task.description) {
+          desc = decrypt(task.description);
+        }
       } catch (e) {
-        console.log("Decrypt error:", e.message);
+        console.log("Decrypt failed:", e.message);
+        desc = task.description; // fallback
       }
 
       return {
@@ -58,16 +58,15 @@ exports.getTasks = async (req, res) => {
 
     res.json(decryptedTasks);
   } catch (error) {
-    console.log("Get Tasks Error:", error.message);
+    console.log("GET TASK ERROR:", error);
     res.status(500).json({ message: error.message });
   }
 };
-// ✅ UPDATE TASK
+
 exports.updateTask = async (req, res) => {
   try {
     const updateData = { ...req.body };
 
-    // 🔥 encrypt if description updated
     if (updateData.description) {
       updateData.description = encrypt(updateData.description);
     }
@@ -82,7 +81,6 @@ exports.updateTask = async (req, res) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    // decrypt before sending
     let desc = task.description;
     try {
       desc = decrypt(task.description);
@@ -98,7 +96,6 @@ exports.updateTask = async (req, res) => {
   }
 };
 
-// ✅ DELETE TASK
 exports.deleteTask = async (req, res) => {
   try {
     const task = await Task.findOneAndDelete({
