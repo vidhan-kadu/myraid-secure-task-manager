@@ -12,7 +12,7 @@ app.use(
   cors({
     origin:[
       "http://localhost:5173",
-      "https://myraid-backend-o7sl.onrender.com"
+      "https://myraid-secure-task-manager.vercel.app/"
     ],
     credentials: true,
   }),
