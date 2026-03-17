@@ -14,6 +14,7 @@ app.use(
       "http://localhost:5173",
       "https://myraid-backend-o7sl.onrender.com"
     ],
+    credentials: true,
   }),
 );
 
