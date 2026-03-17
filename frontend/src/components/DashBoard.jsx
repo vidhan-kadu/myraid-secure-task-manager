@@ -21,9 +21,12 @@ function Dashboard() {
 
   const getTasks = async () => {
     try {
-      const res = await API.get(
-        `/tasks?page=${page}&status=${status}&search=${search}`,
-      );
+      let url = `/tasks?page=${page}`;
+
+      if (status) url += `&status=${status}`;
+      if (search) url += `&search=${search}`;
+
+const res = await API.get(url);
       setTasks(res.data);
     } catch (err) {
       console.log(err);

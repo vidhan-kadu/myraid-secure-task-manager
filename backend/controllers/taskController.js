@@ -4,7 +4,13 @@ const { encrypt, decrypt } = require("../utils/encryption");
 exports.createTask = async (req, res) => {
   try {
     const { title, description } = req.body;
+
+    if (!title || !description) {
+      return res.status(400).json({ message: "All fields required" });
+    }
+
     const encryptedDesc = encrypt(description);
+
     const task = await Task.create({
       title,
       description: encryptedDesc,
@@ -13,6 +19,7 @@ exports.createTask = async (req, res) => {
 
     res.status(201).json(task);
   } catch (error) {
+    console.log(error); 
     res.status(500).json({ message: error.message });
   }
 };
