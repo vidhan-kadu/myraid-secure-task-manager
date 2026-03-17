@@ -9,7 +9,7 @@ function App() {
 
   const login = async () => {
     try {
-      await API.post("/auth/login", { email, password });
+      await API.post("/api/auth/login", { email, password });
       setLoggedIn(true);
     } catch (err) {
       alert("Login failed");
