@@ -40,17 +40,14 @@ exports.login = async (req, res) => {
       expiresIn: "1d",
     });
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: false, // change to true in production
+    res.json({
+      message: "Login successful",
+      token,
     });
-
-    res.json({ message: "Login successful" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.logout = (req, res) => {
   res.clearCookie("token");
   res.json({ message: "Logged out successfully" });
