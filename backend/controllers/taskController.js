@@ -25,10 +25,14 @@ exports.createTask = async (req, res) => {
 };
 
 exports.getTasks = async (req, res) => {
+  console.log("Get Tasks for user:", req.user);
   try {
     const { page = 1, status, search } = req.query;
 
-    const query = { user: req.user };
+    const query = {};
+    if(req.user) {
+      query.user = req.user;
+    }
 
     if (status) query.status = status;
     if (search) query.title = { $regex: search, $options: "i" };
